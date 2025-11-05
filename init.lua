@@ -784,11 +784,43 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        -- "_" runs on filetypes that don't have other formatters defined
+        ['_'] = function(bufnr)
+          local filepath = vim.api.nvim_buf_get_name(bufnr)
+          local dev_path = vim.fn.expand '~' .. '/dev/'
+
+          if filepath:match('^' .. dev_path) then
+            return { 'prettier' }
+          else
+            return { 'prettierd' }
+          end
+        end,
+      },
+      formatters = {
+        -- prettier = function(bufnr)
+        --   local filepath = vim.api.nvim_buf_get_name(bufnr)
+        --   local dirname = vim.fs.dirname(filepath)
         --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        --   -- Try to find Yarn SDK
+        --   local sdk_path = vim.fs.find('.yarn/sdks/prettier/bin/prettier.cjs', {
+        --     upward = true,
+        --     path = dirname,
+        --   })[1]
+        --
+        --   if sdk_path then
+        --     -- Use SDK directly with node (faster)
+        --     return {
+        --       command = 'node',
+        --       args = { sdk_path, '--stdin-filepath', '$FILENAME' },
+        --     }
+        --   else
+        --     -- Fallback to yarn exec
+        --     return {
+        --       command = 'yarn',
+        --       args = { 'exec', 'prettier', '--stdin-filepath', '$FILENAME' },
+        --     }
+        --   end
+        -- end,
       },
     },
   },
