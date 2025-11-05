@@ -95,6 +95,7 @@ vim.g.have_nerd_font = false
 
 -- Load custom configuration
 require 'zip753.opt'
+require 'zip753.grep'
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
