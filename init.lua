@@ -797,30 +797,42 @@ require('lazy').setup({
         end,
       },
       formatters = {
-        -- prettier = function(bufnr)
-        --   local filepath = vim.api.nvim_buf_get_name(bufnr)
-        --   local dirname = vim.fs.dirname(filepath)
-        --
-        --   -- Try to find Yarn SDK
-        --   local sdk_path = vim.fs.find('.yarn/sdks/prettier/bin/prettier.cjs', {
-        --     upward = true,
-        --     path = dirname,
-        --   })[1]
-        --
-        --   if sdk_path then
-        --     -- Use SDK directly with node (faster)
-        --     return {
-        --       command = 'node',
-        --       args = { sdk_path, '--stdin-filepath', '$FILENAME' },
-        --     }
-        --   else
-        --     -- Fallback to yarn exec
-        --     return {
-        --       command = 'yarn',
-        --       args = { 'exec', 'prettier', '--stdin-filepath', '$FILENAME' },
-        --     }
-        --   end
-        -- end,
+        prettier = function(bufnr)
+          local filepath = vim.api.nvim_buf_get_name(bufnr)
+          local dirname = vim.fs.dirname(filepath)
+
+          -- 1. Try Yarn SDK (for PnP projects)
+          local sdk_path = vim.fs.find('.yarn/sdks/prettier/bin/prettier.cjs', {
+            upward = true,
+            path = dirname,
+          })[1]
+
+          if sdk_path then
+            return {
+              command = 'node',
+              args = { sdk_path, '--stdin-filepath', '$FILENAME' },
+            }
+          end
+
+          -- 2. Try node_modules/.bin/prettier (for non-PnP projects)
+          local node_modules_prettier = vim.fs.find('node_modules/.bin/prettier', {
+            upward = true,
+            path = dirname,
+          })[1]
+
+          if node_modules_prettier then
+            return {
+              command = node_modules_prettier,
+              args = { '--stdin-filepath', '$FILENAME' },
+            }
+          end
+
+          -- 3. Fallback to yarn exec
+          return {
+            command = 'yarn',
+            args = { 'exec', 'prettier', '--stdin-filepath', '$FILENAME' },
+          }
+        end,
       },
     },
   },
